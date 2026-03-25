@@ -7,7 +7,7 @@ BASE_URL = "https://data.commoncrawl.org/"
 WET_PATH = "crawl-data/CC-MAIN-2026-08/segments/1770395505396.36/wet/CC-MAIN-20260206181458-20260206211458-00000.warc.wet.gz"
 FULL_URL = BASE_URL + WET_PATH
 
-OUTPUT_DIR = "../data/raw"
+OUTPUT_DIR = "data"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
 

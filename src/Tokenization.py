@@ -1,50 +1,41 @@
-"""
-This is a sample program that I stried up in order to unserstand the Tokennization
-Note: This is not the part of the code
-"""
+# Final code of Tokenization for PySearch
+
 import re
 import string
 from nltk.tokenize import word_tokenize
-
-# Sample text with punctuation, emojis, and emails
-text = """
-Hello! 😊 This is a test email@example.com. 
-Can you remove this? 👍 Also, check info@domain.org! 
-"""
+from nltk.corpus import stopwords
+from nltk.stem import PorterStemmer
 
 def clean_text(text):
-    # Step 1: Remove emails
-    text = re.sub(r'S+@S+', '', text)
+    # 1. Emails remove karo (Fixed Regex)
+    text = re.sub(r'\S+@\S+', '', text)
     
     # Step 2: Remove emojis and symbols
-    emoji_pattern = re.compile(
-        "["
-        "U0001F600-U0001F64F"  # Emoticons
-        "U0001F300-U0001F5FF"  # Symbols & pictographs
-        "U0001F680-U0001F6FF"  # Transport & map symbols
-        "U0001F700-U0001F77F"  # Alchemical symbols
-        "U0001F780-U0001F7FF"  # Geometric Shapes Extended
-        "U0001F800-U0001F8FF"  # Supplemental Arrows-C
-        "U0001F900-U0001F9FF"  # Supplemental Symbols and Pictographs
-        "U0001FA00-U0001FA6F"  # Chess Symbols
-        "U0001FA70-U0001FAFF"  # Symbols and Pictographs Extended-A
-        "U00002702-U000027B0"  # Dingbats
-        "U000024C2-U0001F251" 
-        "]+", 
-        flags=re.UNICODE
-    )
-    text = emoji_pattern.sub('', text)
+    text = text.encode('ascii', 'ignore').decode('ascii')
     
-    # Step 3: Remove punctuation
+    # 3. Punctuation hatao
     text = text.translate(str.maketrans('', '', string.punctuation))
     
-    # Step 4: Tokenize and rejoin (optional, removes extra whitespace)
-    tokens = word_tokenize(text)
-    cleaned_text = ' '.join(tokens)
+    # 4. Tokenize aur Lowercase
+    tokens = word_tokenize(text.lower())
     
-    return cleaned_text
+    # 5. Stopwords hatao aur Stemming karo
+    stop_words = set(stopwords.words('english'))
+    ps = PorterStemmer()
+    
+    # Sirf wo words rakho jo stopword nahi hain aur unki base form lo
+    cleaned_tokens = [ps.stem(w) for w in tokens if w not in stop_words and w.isalnum()]
+    
+    return cleaned_tokens
 
-# Clean the text and make it lowercase
-cleaned_text = clean_text(text).lower()
-print("Original Text:", text)
-print("Cleaned Text:", cleaned_text)
+if __name__ == "__main__":
+    sample = "The boy is running and sending emails to info@domain.org! 😊"
+
+    text = """
+    Hello! 😊 This is a test email@example.com. 
+    Can you remove this? 👍 Also, check info@domain.org! 
+    """
+    text1 = "Hello! 😊 This is a test email@example.com. Can you remove this? 👍 Also, check info@domain.org!"
+    print(clean_text(sample))
+    print(clean_text(text))
+    print(clean_text(text1))

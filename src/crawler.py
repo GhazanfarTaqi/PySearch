@@ -29,6 +29,12 @@ def extract_tech_data(url: str, limit: int = None):
             if record.rec_type != "conversion":
                 continue
 
+            lang = record.rec_headers.get_header("WARC-Identified-Content-Language")
+            
+            # Agar tag mojood hai aur usme 'eng' nahi likha, toh document reject kar do
+            if lang and "eng" not in lang:
+                continue
+            
             uri = record.rec_headers.get_header("WARC-Target-URI")
             text = record.content_stream().read().decode("utf-8", errors="ignore")
 

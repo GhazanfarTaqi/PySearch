@@ -1,5 +1,3 @@
-# Final code of Tokenization for PySearch
-
 import re
 import string
 from nltk.tokenize import word_tokenize
@@ -8,7 +6,7 @@ from nltk.stem import PorterStemmer
 
 # ==========================================
 # 🚀 INITIALIZATION OUTSIDE THE FUNCTION
-# Yeh sab RAM mein sirf 1 dafa load hoga
+# Loads only once into memory (RAM) for efficiency
 # ==========================================
 EMAIL_REGEX = re.compile(r'\S+@\S+')
 PUNCT_TABLE = str.maketrans('', '', string.punctuation)
@@ -16,22 +14,22 @@ STOP_WORDS = set(stopwords.words('english'))
 STEMMER = PorterStemmer()
 
 def clean_text(text):
-    # 1. Emails remove karo (Pre-compiled regex use kar rahe hain)
+    # 1. Remove emails (using a pre-compiled regex for speed)
     text = EMAIL_REGEX.sub('', text)
     
-    # 2. Remove emojis and symbols
+    # 2. Remove emojis and non-ascii symbols
     text = text.encode('ascii', 'ignore').decode('ascii')
     
-    # 3. Punctuation hatao (Pre-compiled table use kar rahe hain)
+    # 3. Remove punctuation (using a pre-compiled translation table)
     text = text.translate(PUNCT_TABLE)
     
-    # 4. Tokenize aur Lowercase
-    # PRO TIP: NLTK ka `word_tokenize` phir bhi thora slow hai. 
-    # Agar tumhe XTREME SPEED chahiye toh iski jagah sirf `tokens = text.lower().split()` use kar lena!
+    # 4. Tokenize and convert to lowercase
+    # PRO TIP: NLTK's `word_tokenize` can still be a bit slow. 
+    # If you need EXTREME SPEED, you can replace this line with: `tokens = text.lower().split()`
     tokens = word_tokenize(text.lower())
     
-    # 5. Stopwords hatao aur Stemming karo
-    # Yahan pehle se loaded STEMMER aur STOP_WORDS use honge
+    # 5. Remove stopwords and apply stemming
+    # This uses the previously loaded STEMMER and STOP_WORDS for maximum efficiency
     cleaned_tokens = [STEMMER.stem(w) for w in tokens if w not in STOP_WORDS and w.isalnum()]
     
     return cleaned_tokens

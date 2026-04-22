@@ -11,20 +11,26 @@ While we have already captured the Term Frequency (TF) in our Inverted Index, we
 import json
 import os
 import math
+import re  # Snippet highlighter ke liye add kiya
 from Tokenization import clean_text
 
 # ==========================================
 # 📂 PATH SETUP
 # ==========================================
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-INDEX_FILE = os.path.join(BASE_DIR, "data", "inverted_index.json")
+INDEX_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\inverted_index.json"
+DOCS_STORE_FILE = (
+    r"C:\Users\user\Documents\GitHub\PySearch\data\docs_store.json"  # Nayi file ka path
+)
 
 
 class PySearchEngine:
-    def __init__(self, index_path):
-        print("Loading Inverted Index into memory... Please wait.")
+    def __init__(self, index_path, docs_path):
+        print("Loading Inverted Index and Document Store into memory... Please wait.")
         with open(index_path, "r", encoding="utf-8") as f:
             self.index = json.load(f)
+
+        with open(docs_path, "r", encoding="utf-8") as f:
+            self.docs_store = json.load(f)
 
         # Calculate the total number of documents for IDF calculation
         self.total_docs = self._calculate_total_docs()
@@ -38,43 +44,67 @@ class PySearchEngine:
                 unique_docs.add(doc_uri)
         return max(1, len(unique_docs))  # Max 1 to prevent Divide by Zero errors
 
-    def search(self, query, top_k=10):
-        # 1. Clean and tokenize the user's query
+    # ==========================================
+    # ✂️ SNIPPET GENERATOR LOGIC
+    # ==========================================
+    def _generate_snippet(self, text, tokens):
+        lower_text = text.lower()
+        for token in tokens:
+            idx = lower_text.find(token)
+            if idx != -1:
+                # Word found! Uske aage peeche ka context uthao
+                start = max(0, idx - 50)
+                end = min(len(text), idx + 80)
+                snippet = text[start:end]
+
+                # HTML <b> tags lagao taake UI mein bold nazar aaye
+                highlighted_snippet = re.sub(
+                    f"({token})", r"<b>\1</b>", snippet, flags=re.IGNORECASE
+                )
+                return "..." + highlighted_snippet.strip() + "..."
+
+        # Agar exact match preview mein na mile toh shuru ka text bhej do
+        return text[:100] + "..."
+
+    def search(self, query, page=1, page_size=10):
         tokens = clean_text(query)
         if not tokens:
-            return []
+            return [], 0
 
         scores = {}
-
-        # 2. TF-IDF Scoring Logic
         for token in tokens:
             if token in self.index:
-                doc_freq = len(
-                    self.index[token]
-                )  # Number of documents containing this word
-
-                # Mathematical formula for IDF
+                doc_freq = len(self.index[token])
                 idf = math.log10(self.total_docs / doc_freq)
-
-                # Score the document
                 for uri, tf in self.index[token].items():
                     if uri not in scores:
                         scores[uri] = 0
                     scores[uri] += tf * idf
 
-        # 3. Sort results (Highest score comes first)
         ranked_results = sorted(scores.items(), key=lambda item: item[1], reverse=True)
-        return ranked_results[:top_k]
+        total_matches = len(ranked_results)
+
+        # Pagination Logic (Slice the array)
+        start_idx = (page - 1) * page_size
+        end_idx = start_idx + page_size
+
+        final_results = []
+        for uri, score in ranked_results[start_idx:end_idx]:
+            text_preview = self.docs_store.get(uri, "No text preview available.")
+            snippet = self._generate_snippet(text_preview, tokens)
+            final_results.append({"url": uri, "score": score, "snippet": snippet})
+
+        return final_results, total_matches
 
 
 # ==========================================
 # 🚀 INTERACTIVE TERMINAL
 # ==========================================
 if __name__ == "__main__":
-    if not os.path.exists(INDEX_FILE):
-        print("Error: inverted_index.json not found. Please run indexer.py first.")
+    if not os.path.exists(INDEX_FILE) or not os.path.exists(DOCS_STORE_FILE):
+        print("Error: Required files not found. Please run indexer.py first.")
     else:
-        engine = PySearchEngine(INDEX_FILE)
+        engine = PySearchEngine(INDEX_FILE, DOCS_STORE_FILE)
 
         print("\n" + "=" * 40)
         print("   🔍 WELCOME TO PYSEARCH ENGINE   ")
@@ -94,5 +124,7 @@ if __name__ == "__main__":
                 print("No results found. Please try searching for something else.")
             else:
                 print(f"\nTop {len(results)} Results for '{user_query}':")
-                for i, (uri, score) in enumerate(results, 1):
-                    print(f"{i}. {uri} (Relevance Score: {score:.4f})")
+                for i, res in enumerate(results, 1):
+                    # Ab dictionary se data print kar rahe hain
+                    print(f"{i}. {res['url']} (Relevance Score: {res['score']:.4f})")
+                    print(f"   Snippet: {res['snippet']}")

@@ -31,7 +31,7 @@ def extract_tech_data(url: str, limit: int = None):
 
             lang = record.rec_headers.get_header("WARC-Identified-Content-Language")
             
-            # Agar tag mojood hai aur usme 'eng' nahi likha, toh document reject kar do
+            # If present and doesn't contain ENGLISH then reject the document.
             if lang and "eng" not in lang:
                 continue
             

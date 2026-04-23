@@ -14,7 +14,7 @@ from search import PySearchEngine
 # 📂 PATH SETUP
 # ==========================================
 INDEX_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\inverted_index.json"
-DOCS_STORE_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\docs_store.json" # 👈 Nayi file add ho gayi
+DOCS_STORE_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\docs_store.json"
 
 # Initialize FastAPI app
 app = FastAPI(title="PySearch API")

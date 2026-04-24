@@ -2,4 +2,3 @@ requests
 warcio
 nltk
 fastapi
-re

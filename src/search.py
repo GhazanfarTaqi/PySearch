@@ -17,9 +17,9 @@ from Tokenization import clean_text
 # ==========================================
 # 📂 PATH SETUP
 # ==========================================
-INDEX_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\inverted_index.json"
+INDEX_FILE = r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\inverted_index.json"
 DOCS_STORE_FILE = (
-    r"C:\Users\user\Documents\GitHub\PySearch\data\docs_store.json"  # Nayi file ka path
+    r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\docs_store.json"  # Nayi file ka path
 )
 
 
@@ -43,6 +43,66 @@ class PySearchEngine:
             for doc_uri in docs.keys():
                 unique_docs.add(doc_uri)
         return max(1, len(unique_docs))  # Max 1 to prevent Divide by Zero errors
+
+    # ==========================================
+    # 📏 EDIT DISTANCE (Levenshtein Distance)
+    # ==========================================
+    def _levenshtein_distance(self, s1, s2):
+        """
+        Calculate the Levenshtein distance between two strings.
+        This measures how many single-character edits (insertions, deletions, substitutions)
+        are needed to transform s1 into s2.
+        Time Complexity: O(m*n) where m and n are string lengths
+        Space Complexity: O(m*n) but can be optimized to O(min(m,n))
+        """
+        if len(s1) < len(s2):
+            return self._levenshtein_distance(s2, s1)
+        
+        if len(s2) == 0:
+            return len(s1)
+        
+        # Use dynamic programming to calculate distances
+        previous_row = range(len(s2) + 1)
+        for i, c1 in enumerate(s1):
+            current_row = [i + 1]
+            for j, c2 in enumerate(s2):
+                # j+1 instead of j since previous_row and current_row are one character longer than s2
+                insertions = previous_row[j + 1] + 1
+                deletions = current_row[j] + 1
+                substitutions = previous_row[j] + (c1 != c2)
+                current_row.append(min(insertions, deletions, substitutions))
+            previous_row = current_row
+        
+        return previous_row[-1]
+
+    # ==========================================
+    # 🤔 DID YOU MEAN - SUGGESTION ENGINE
+    # ==========================================
+    def _get_suggestions(self, token, max_distance=2, top_n=3):
+        """
+        Find similar terms in the index using edit distance.
+        Returns top N suggestions with similar spellings.
+        
+        Args:
+            token: The misspelled/unfound token
+            max_distance: Maximum edit distance to consider (default 2)
+            top_n: Number of suggestions to return (default 3)
+        
+        Returns:
+            List of suggested terms sorted by edit distance
+        """
+        suggestions = []
+        
+        for indexed_term in self.index.keys():
+            distance = self._levenshtein_distance(token, indexed_term)
+            
+            # Only consider terms within max_distance
+            if distance <= max_distance:
+                suggestions.append((indexed_term, distance))
+        
+        # Sort by distance (closer matches first) and return top N
+        suggestions.sort(key=lambda x: x[1])
+        return [term for term, _ in suggestions[:top_n]]
 
     # ==========================================
     # ✂️ SNIPPET GENERATOR LOGIC
@@ -69,9 +129,11 @@ class PySearchEngine:
     def search(self, query, page=1, page_size=10):
         tokens = clean_text(query)
         if not tokens:
-            return [], 0
+            return [], 0, []
 
         scores = {}
+        missing_tokens = []  # Track tokens not found in index
+        
         for token in tokens:
             if token in self.index:
                 doc_freq = len(self.index[token])
@@ -80,6 +142,18 @@ class PySearchEngine:
                     if uri not in scores:
                         scores[uri] = 0
                     scores[uri] += tf * idf
+            else:
+                # Token not found - we'll suggest corrections
+                missing_tokens.append(token)
+
+        # Generate "Did You Mean" suggestions for missing tokens
+        suggestions = []
+        for missing_token in missing_tokens:
+            token_suggestions = self._get_suggestions(missing_token)
+            suggestions.extend(token_suggestions)
+        
+        # Remove duplicates and limit to 3 unique suggestions
+        suggestions = list(dict.fromkeys(suggestions))[:3]
 
         ranked_results = sorted(scores.items(), key=lambda item: item[1], reverse=True)
         total_matches = len(ranked_results)
@@ -94,7 +168,7 @@ class PySearchEngine:
             snippet = self._generate_snippet(text_preview, tokens)
             final_results.append({"url": uri, "score": score, "snippet": snippet})
 
-        return final_results, total_matches
+        return final_results, total_matches, suggestions
 
 
 # ==========================================
@@ -118,13 +192,20 @@ if __name__ == "__main__":
                 print("PySearch is closing. Goodbye!")
                 break
 
-            results = engine.search(user_query)
+            results, total_results, suggestions = engine.search(user_query)
 
+            # Display suggestions if no results found
             if not results:
                 print("No results found. Please try searching for something else.")
+                if suggestions:
+                    print(f"\n💡 Did you mean: {', '.join(suggestions)}")
             else:
                 print(f"\nTop {len(results)} Results for '{user_query}':")
                 for i, res in enumerate(results, 1):
                     # Ab dictionary se data print kar rahe hain
                     print(f"{i}. {res['url']} (Relevance Score: {res['score']:.4f})")
                     print(f"   Snippet: {res['snippet']}")
+                
+                # Show suggestions even if we found some results
+                if suggestions:
+                    print(f"\n💡 Did you mean: {', '.join(suggestions)}")

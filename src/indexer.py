@@ -16,9 +16,9 @@ from Tokenization import clean_text
 # ==========================================
 # 📂 PATH SETUP (Static Absolute Paths)
 # ==========================================
-INPUT_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\raw.jsonl"
-OUTPUT_INDEX_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\inverted_index.json"
-DOCS_STORE_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\docs_store.json" # New file for snippets
+INPUT_FILE = r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\raw.jsonl"
+OUTPUT_INDEX_FILE = r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\inverted_index.json"
+DOCS_STORE_FILE = r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\docs_store.json" # New file for snippets
 
 def build_inverted_index(input_path, output_index_path, output_store_path):
     print("Inverted Index and Document Store generation is starting...")

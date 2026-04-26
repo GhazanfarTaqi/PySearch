@@ -13,8 +13,8 @@ from search import PySearchEngine
 # ==========================================
 # 📂 PATH SETUP
 # ==========================================
-INDEX_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\inverted_index.json"
-DOCS_STORE_FILE = r"C:\Users\user\Documents\GitHub\PySearch\data\docs_store.json"
+INDEX_FILE = r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\inverted_index.json"
+DOCS_STORE_FILE = r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\docs_store.json"
 
 # Initialize FastAPI app
 app = FastAPI(title="PySearch API")
@@ -41,7 +41,7 @@ def read_root():
 
 @app.get("/search")
 def search_query(q: str, page: int = 1, limit: int = 10):
-    results, total_matches = engine.search(q, page=page, page_size=limit)
+    results, total_matches, suggestions = engine.search(q, page=page, page_size=limit)
     
     # Calculate total pages
     total_pages = math.ceil(total_matches / limit) if total_matches > 0 else 0
@@ -51,5 +51,6 @@ def search_query(q: str, page: int = 1, limit: int = 10):
         "total_results": total_matches,
         "current_page": page,
         "total_pages": total_pages,
+        "suggestions": suggestions,
         "results": results
     }

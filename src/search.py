@@ -193,7 +193,7 @@ if __name__ == "__main__":
                 print("PySearch is closing. Goodbye!")
                 break
         
-            results, total_matches = engine.search(user_query, page=1, page_size=10)
+            results, total_matches, suggestions = engine.search(user_query, page=1, page_size=10)
 
             # Display suggestions if no results found
             if not results:

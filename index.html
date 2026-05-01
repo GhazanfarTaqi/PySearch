@@ -35,6 +35,7 @@
     <button onclick="startNewSearch()">Search</button>
 
     <div id="results"></div>
+    <div id="suggestions" class="suggestions"></div>
     <div id="pagination" class="pagination"></div>
 
     <script>
@@ -70,11 +71,13 @@
 
         async function fetchResults() {
             const resultsDiv = document.getElementById("results");
+            const suggestionsDiv = document.getElementById("suggestions");
             const paginationDiv = document.getElementById("pagination");
             
             if (!currentQuery) return;
 
             resultsDiv.innerHTML = "<p>Loading...</p>";
+            suggestionsDiv.innerHTML = "";
             paginationDiv.innerHTML = ""; 
 
             try {
@@ -99,6 +102,16 @@
 
                 // 2. Summary of results
                 resultsDiv.innerHTML += `<p style="color: #70757a; font-size: 14px;">Found ${data.total_results} results (Showing Page ${data.current_page} of ${data.total_pages})</p>`;
+
+                // Display suggestions if they exist
+                if (data.suggestions && data.suggestions.length > 0) {
+                    suggestionsDiv.innerHTML = `
+                        <div class="suggestions-title">💡 Did you mean:</div>
+                        ${data.suggestions.map(suggestion => 
+                            `<a href="javascript:void(0)" class="suggestion-link" onclick="searchQuery('${suggestion}')">${suggestion}</a>`
+                        ).join('')}
+                    `;
+                }
 
                 if (data.results.length === 0) {
                     resultsDiv.innerHTML += "<p>No results found.</p>";
@@ -132,6 +145,11 @@
                 console.error("Error connecting to API:", error);
                 resultsDiv.innerHTML = `<p style="color:red;">Error: Backend API is not running.</p>`;
             }
+        }
+
+        function searchQuery(query) {
+            document.getElementById("searchBox").value = query;
+            startNewSearch();
         }
     </script>
 </body>

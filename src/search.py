@@ -16,8 +16,11 @@ from src.Tokenization import clean_text
 # ==========================================
 # 📂 PATH SETUP
 # ==========================================
-INDEX_FILE = r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\inverted_index.json"
-DOCS_STORE_FILE = r"C:\Users\ghaza\OneDrive\Desktop\Semester 4\Analysis of Algorithms\Project\pysearch\data\docs_store.json" 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+DATA_DIR = os.path.join(BASE_DIR, "data")
+
+INDEX_FILE = os.path.join(DATA_DIR, "inverted_index.json")
+DOCS_STORE_FILE = os.path.join(DATA_DIR, "docs_store.json")
 
 
 class PySearchEngine:
@@ -166,15 +169,15 @@ if __name__ == "__main__":
             if user_query.lower() == "exit":
                 print("PySearch is closing. Goodbye!")
                 break
-
-            results, total_results, suggestions = engine.search(user_query)
+        
+            results, total_matches = engine.search(user_query, page=1, page_size=10)
 
             if not results:
                 print("No results found. Please try searching for something else.")
                 if suggestions:
                     print(f"\n💡 Did you mean: {suggestions}")
             else:
-                print(f"\nTop {len(results)} Results for '{user_query}':")
+                print(f"\nShowing Top {len(results)} Results for '{user_query}' (Out of {total_matches} total matches):")
                 for i, res in enumerate(results, 1):
                     print(f"{i}. {res['url']} (Relevance Score: {res['score']:.4f})")
                     print(f"   Snippet: {res['snippet']}")

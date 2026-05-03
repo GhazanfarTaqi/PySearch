@@ -55,6 +55,6 @@ def search_query(q: str, page: int = 1, limit: int = 10):
             "total_results": total_matches,
             "current_page": page,
             "total_pages": total_pages,
-            "suggestions": suggestions,  # <-- Just change this key!
+            "suggestions": suggestions,
             "results": results
         }

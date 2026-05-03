@@ -5,12 +5,13 @@ This script is the main interface for the search engine.
 It takes a user's search query, cleans the text, and looks for matching
 words in the Inverted Index. To make sure the best results come first,
 it uses the TF-IDF formula to score and rank the documents based on relevance.
+While we have already captured the Term Frequency (TF) in our Inverted Index, we still need to implement the Inverse Document Frequency (IDF) logic. In the worst-case scenario, without a proper ranking system, the search engine would display the most irrelevant and useless links at the top. Therefore, we must mathematically score these results to ensure accuracy and relevance.
 """
 
 import json
 import os
 import math
-import re  
+import re  # Snippet highlighter ke liye add kiya
 from src.Tokenization import clean_text
 
 # ==========================================

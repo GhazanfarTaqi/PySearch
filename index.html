@@ -1,33 +1,127 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PySearch</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; text-align: center; }
-        input { width: 70%; padding: 15px; font-size: 18px; border-radius: 25px; border: 1px solid #ccc; outline: none; }
-        button { padding: 15px 25px; font-size: 18px; border-radius: 25px; border: none; background: #007bff; color: white; cursor: pointer; margin-left: 10px; }
-        #results { margin-top: 30px; text-align: left; }
-        .result-item { padding: 15px; border-bottom: 1px solid #eee; }
-        .result-item a { color: #1a0dab; text-decoration: none; font-size: 20px; font-weight: bold; }
-        .result-item a:hover { text-decoration: underline; }
-        .snippet { font-size: 15px; color: #4d5156; margin-top: 8px; line-height: 1.4; }
-        .snippet b { color: #202124; font-weight: bold; }
-        .score { color: #006621; font-size: 13px; margin-top: 5px; }
-        
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            text-align: center;
+        }
+
+        input {
+            width: 70%;
+            padding: 15px;
+            font-size: 18px;
+            border-radius: 25px;
+            border: 1px solid #ccc;
+            outline: none;
+        }
+
+        button {
+            padding: 15px 25px;
+            font-size: 18px;
+            border-radius: 25px;
+            border: none;
+            background: #007bff;
+            color: white;
+            cursor: pointer;
+            margin-left: 10px;
+        }
+
+        #results {
+            margin-top: 30px;
+            text-align: left;
+        }
+
+        .result-item {
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .result-item a {
+            color: #1a0dab;
+            text-decoration: none;
+            font-size: 20px;
+            font-weight: bold;
+        }
+
+        .result-item a:hover {
+            text-decoration: underline;
+        }
+
+        .snippet {
+            font-size: 15px;
+            color: #4d5156;
+            margin-top: 8px;
+            line-height: 1.4;
+        }
+
+        .snippet b {
+            color: #202124;
+            font-weight: bold;
+        }
+
+        .score {
+            color: #006621;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+
         /* Did you mean CSS */
-        .spell-check { color: #cc0000; font-size: 16px; margin-bottom: 15px; }
-        .spell-check span { color: #cc0000; }
-        .spell-check a { color: #1a0dab; font-weight: bold; font-style: italic; text-decoration: none; cursor: pointer; }
-        .spell-check a:hover { text-decoration: underline; }
+        .spell-check {
+            color: #cc0000;
+            font-size: 16px;
+            margin-bottom: 15px;
+        }
+
+        .spell-check span {
+            color: #cc0000;
+        }
+
+        .spell-check a {
+            color: #1a0dab;
+            font-weight: bold;
+            font-style: italic;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .spell-check a:hover {
+            text-decoration: underline;
+        }
 
         /* Pagination CSS */
-        .pagination { margin-top: 30px; padding-bottom: 50px; text-align: center;}
-        .page-btn { padding: 10px 20px; font-size: 16px; margin: 0 5px; background: #f8f9fa; color: #202124; border: 1px solid #dadce0; border-radius: 5px; cursor: pointer;}
-        .page-btn:disabled { background: #e0e0e0; color: #9aa0a6; cursor: not-allowed; border: none; }
+        .pagination {
+            margin-top: 30px;
+            padding-bottom: 50px;
+            text-align: center;
+        }
+
+        .page-btn {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 0 5px;
+            background: #f8f9fa;
+            color: #202124;
+            border: 1px solid #dadce0;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .page-btn:disabled {
+            background: #e0e0e0;
+            color: #9aa0a6;
+            cursor: not-allowed;
+            border: none;
+        }
     </style>
 </head>
+
 <body>
 
     <h1>🔍 PySearch</h1>
@@ -39,7 +133,7 @@
     <div id="pagination" class="pagination"></div>
 
     <script>
-        let currentPage = 1; 
+        let currentPage = 1;
         let currentQuery = "";
 
         function handleKeyPress(e) {
@@ -51,9 +145,9 @@
         function startNewSearch() {
             currentPage = 1;
             currentQuery = document.getElementById("searchBox").value.trim();
-            
-            if (currentQuery === "") return; 
-            
+
+            if (currentQuery === "") return;
+
             fetchResults();
         }
 
@@ -66,19 +160,19 @@
         function changePage(newPage) {
             currentPage = newPage;
             fetchResults();
-            window.scrollTo(0, 0); 
+            window.scrollTo(0, 0);
         }
 
         async function fetchResults() {
             const resultsDiv = document.getElementById("results");
             const suggestionsDiv = document.getElementById("suggestions");
             const paginationDiv = document.getElementById("pagination");
-            
+
             if (!currentQuery) return;
 
             resultsDiv.innerHTML = "<p>Loading...</p>";
             suggestionsDiv.innerHTML = "";
-            paginationDiv.innerHTML = ""; 
+            paginationDiv.innerHTML = "";
 
             try {
                 const response = await fetch(`http://127.0.0.1:8000/search?q=${currentQuery}&page=${currentPage}`);
@@ -86,32 +180,23 @@
 
                 resultsDiv.innerHTML = ""; // Clear loader
 
-                // 1. Check for spelling suggestions first
-                if (data.suggestions && data.suggestions.length > 0) {
-                    // Agar backend array bhej raha hai (e.g., ["hello"]), toh pehla item uthao. 
-                    // Agar string bhej raha hai, toh directly use karo.
-                    let suggestionText = Array.isArray(data.suggestions) ? data.suggestions[0] : data.suggestions;
-                    
-                    resultsDiv.innerHTML += `
-                        <div class="spell-check">
-                            <span>Did you mean:</span> 
-                            <a onclick="applySuggestion('${suggestionText}')">${suggestionText}</a>
-                        </div>
-                    `;
+                // 1. Check for spelling suggestions (Fixed for String response)
+                if (data.suggestions) {
+                    // Agar backend single string bhej raha hai toh wahi use karein
+                    let suggestionText = typeof data.suggestions === 'string' ? data.suggestions : data.suggestions[0];
+
+                    if (suggestionText) {
+                        resultsDiv.innerHTML += `
+                    <div class="spell-check">
+                        <span>Did you mean:</span> 
+                        <a onclick="applySuggestion('${suggestionText}')">${suggestionText}</a>
+                    </div>
+                `;
+                    }
                 }
 
                 // 2. Summary of results
                 resultsDiv.innerHTML += `<p style="color: #70757a; font-size: 14px;">Found ${data.total_results} results (Showing Page ${data.current_page} of ${data.total_pages})</p>`;
-
-                // Display suggestions if they exist
-                if (data.suggestions && data.suggestions.length > 0) {
-                    suggestionsDiv.innerHTML = `
-                        <div class="suggestions-title">💡 Did you mean:</div>
-                        ${data.suggestions.map(suggestion => 
-                            `<a href="javascript:void(0)" class="suggestion-link" onclick="searchQuery('${suggestion}')">${suggestion}</a>`
-                        ).join('')}
-                    `;
-                }
 
                 if (data.results.length === 0) {
                     resultsDiv.innerHTML += "<p>No results found.</p>";
@@ -121,24 +206,24 @@
                 // 3. Draw Results
                 data.results.forEach(item => {
                     resultsDiv.innerHTML += `
-                        <div class="result-item">
-                            <a href="${item.url}" target="_blank">${item.url}</a>
-                            <div class="snippet">${item.snippet}</div>
-                            <div class="score">Relevance Score: ${item.score.toFixed(4)}</div>
-                        </div>
-                    `;
+                <div class="result-item">
+                    <a href="${item.url}" target="_blank">${item.url}</a>
+                    <div class="snippet">${item.snippet}</div>
+                    <div class="score">Relevance Score: ${item.score.toFixed(4)}</div>
+                </div>
+            `;
                 });
 
                 // 4. Draw Pagination
                 if (data.total_pages > 1) {
                     let prevDisabled = data.current_page === 1 ? "disabled" : "";
                     let nextDisabled = data.current_page === data.total_pages ? "disabled" : "";
-                    
+
                     paginationDiv.innerHTML = `
-                        <button class="page-btn" ${prevDisabled} onclick="changePage(${data.current_page - 1})">Previous</button>
-                        <span style="font-size: 16px; margin: 0 15px;">Page ${data.current_page}</span>
-                        <button class="page-btn" ${nextDisabled} onclick="changePage(${data.current_page + 1})">Next</button>
-                    `;
+                <button class="page-btn" ${prevDisabled} onclick="changePage(${data.current_page - 1})">Previous</button>
+                <span style="font-size: 16px; margin: 0 15px;">Page ${data.current_page}</span>
+                <button class="page-btn" ${nextDisabled} onclick="changePage(${data.current_page + 1})">Next</button>
+            `;
                 }
 
             } catch (error) {
@@ -153,4 +238,5 @@
         }
     </script>
 </body>
+
 </html>

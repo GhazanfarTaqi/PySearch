@@ -1,91 +1,71 @@
-# 🔍 PySearch - Custom AI-Powered Search Engine
+🔍 PySearch - Full-Stack End-to-End Search Engine
+PySearch aik powerful, scratch-built search engine hai jo sirf word-matching nahi karta, balkay TF-IDF Ranking aur NLP Tokenization ka istemal kar ke relevancy ke mutabiq results dikhata hai. Ye project Data Structures (Hash Maps) aur Algorithms ki real-world implementation ko demonstrate karta hai.
 
-![Python](https://img.shields.io/badge/Python-3.8+-blue.svg)
-![FastAPI](https://img.shields.io/badge/FastAPI-0.100+-green.svg)
-![Vanilla JS](https://img.shields.io/badge/Frontend-Vanilla_JS-yellow.svg)
-![Algorithms](https://img.shields.io/badge/Course-Algorithms-orange.svg)
+🚀 Key Highlights
+🌐 Custom Web Crawler: Common Crawl data (WET files) se massive amount mein data stream karta hai.
 
-PySearch is a full-stack, end-to-end custom search engine built entirely from scratch. It was developed to demonstrate the practical implementation of core Data Structures and Algorithms, including **Hash Maps (O(1) lookups)**, **TF-IDF Ranking**, and **Text Parsing/Tokenization**.
+🧠 Intelligent Tokenization: NLTK library ka use kar ke stopwords remove karta hai aur Porter Stemmer ke zariye words ko unki base form mein lata hai.
 
-It features a custom web crawler, an inverted indexer, a mathematical ranking engine, a FastAPI backend, and a Google-like paginated frontend UI.
+⚡ O(1) Inverted Index: Aik advanced Hash Map structure jo lakon documents mein se constant time mein words dhoond nikalta hai.
 
----
+📊 TF-IDF Ranking Engine: Mathematical formula (Term Frequency-Inverse Document Frequency) ka use kar ke results ko rank karta hai.
 
-## ✨ Key Features
-- **🌐 Custom Web Crawler:** Fetches HTML content from raw URLs and extracts clean text.
-- **🧠 NLP Tokenizer:** Cleans text, removes stopwords, and applies Stemming using NLTK.
-- **⚡ O(1) Inverted Index:** Maps words to documents using Hash Maps for ultra-fast $O(1)$ search lookups.
-- **📊 TF-IDF Ranking Engine:** Mathematically scores and ranks documents based on relevance (Term Frequency-Inverse Document Frequency) instead of just word counting.
-- **📝 Contextual Snippets:** Dynamically generates text snippets and highlights the searched keywords using Regular Expressions (Regex).
-- **📄 Pagination:** Slices data mathematically to support Google-like Next/Previous page navigation.
-- **🔌 REST API:** Serves data to the frontend using FastAPI.
-- **💻 Google-like UI:** A clean, responsive frontend built with HTML, CSS, and Vanilla JavaScript.
+💡 "Did You Mean?" Feature: Levenshtein Distance algorithm ka istemal kar ke typos dhoondta hai aur search suggestions deta hai.
 
----
+📝 Smart Snippets: Regex ke zariye search term ko highlight karta hai aur context preview generate karta hai.
 
-## 🏗️ Architecture & Core Algorithms
+🔌 Modern Stack: FastAPI backend aur Vanilla JS frontend jo full-page pagination support karta hai.
 
-This project implements Several core algorithms taught in Computer Science:
+🏗️ Technical Architecture
+Crawl: crawler.py raw internet data fetch kar ke raw.jsonl banata hai.
 
-1. **Crawler (`crawler.py`):** Uses Regex to parse HTML and strip out unwanted scripts/tags.
-2. **Tokenizer (`Tokenization.py`):** $O(N)$ string processing pipeline to normalize user input and document data.
-3. **Indexer (`indexer.py`):** Builds an **Inverted Index (Hash Map)**. This turns a slow $O(N)$ linear search across all documents into a constant time $O(1)$ lookup.
-4. **Search & Rank (`search.py`):** Implements the **TF-IDF formula** and uses Python's `Timsort` ($O(N \log N)$) to sort documents by their relevance scores.
+Index: indexer.py text ko clean kar ke aik inverted index aur document store (metadata) generate karta hai.
 
----
+Search: search.py user ki query ko process karta hai, suggestions dhoondta hai aur TF-IDF score calculate karta hai.
 
-## 📂 Project Structure
+Serve: api.py CORS-enabled REST API ke zariye frontend ko data bhejta hai.
 
-```text
+📂 Project Structure
+Plaintext
 PySearch/
-│
-├── data/                       # Contains all generated data (ignored in git)
-│   ├── raw.jsonl               # Output of the Crawler
-│   ├── inverted_index.json     # The Hash Map (Core Index)
-│   └── docs_store.json         # Text snippets for the frontend
-│
-├── src/                        # Source Code
-│   ├── crawler.py              # Web scraping logic
-│   ├── Tokenization.py         # Text cleaning and stemming
-│   ├── indexer.py              # Inverted Index builder
-│   ├── search.py               # TF-IDF Ranking and Search Logic
-│   └── api.py                  # FastAPI Backend Server
-│
-├── index.html                  # Frontend Web UI
-├── requirements.txt            # Python dependencies
-└── README.md                   # Project Documentation
-🚀 How to Run the Project locally
-Follow these step-by-step instructions to run the search engine on your local machine.
-
-Step 1: Install Dependencies
-Open your terminal and install the required Python libraries:
-
+├── data/                    # Generated Data (Git Ignored)
+│   ├── raw.jsonl            # Scraped content
+│   ├── inverted_index.json  # Fast lookup hash map
+│   └── docs_store.json      # Snippets & Metadata
+├── src/                     # Core Logic
+│   ├── crawler.py           # Data acquisition
+│   ├── Tokenization.py      # NLP Pipeline
+│   ├── indexer.py           # Index building
+│   ├── search.py            # Ranking & Suggestions
+│   └── api.py               # FastAPI Server
+├── index.html               # Frontend UI
+├── requirements.txt         # Dependencies
+└── README.md                # Documentation
+🛠️ Setup & Installation
+Step 1: Clone & Install
 Bash
-pip install fastapi uvicorn nltk requests
-(Note: You may need to download NLTK data. If prompted, run import nltk; nltk.download('punkt'); nltk.download('stopwords') in your python shell).
+git clone https://github.com/Muhammad-Yahya-Sohail/PySearch.git
+cd PySearch
+pip install -r requirements.txt
+Step 2: Prepare NLP Data
+Python
+import nltk
+nltk.download('punkt')
+nltk.download('stopwords')
+Step 3: Run the Pipeline
+Crawl Data: python src/crawler.py
 
-Step 2: Generate the Data (Backend Pipeline)
-Run the pipeline scripts in order to crawl data and build the index:
+Build Index: python src/indexer.py
 
-Run the Crawler: (Fetches websites and creates raw.jsonl)
-
+Step 4: Launch API & UI
 Bash
-python src/crawler.py
-Run the Indexer: (Builds the Hash Map and Document Store)
+# Main directory se server start karein
+uvicorn src.api:app --reload
+API running at: [http://127.0.0.1:8000](http://127.0.0.1:8000)
 
-Bash
-python src/indexer.py
-Step 3: Start the Backend Server (FastAPI)
-Navigate to the src folder and start the API server using Uvicorn:
+Ab simply index.html ko browser mein open karein (Live Server recommended) aur search shuru karein!
 
-Bash
-cd src
-uvicorn api:app --reload
-The API will now be running at http://127.0.0.1:8000.
+🤝 Contribution
+Agar aap koi improvement ya naya algorithm add karna chahte hain, to Pull Request zaroor bhejein!
 
-Step 4: Launch the Frontend UI
-Simply open the index.html file in your favorite web browser (Chrome, Edge, Firefox).
-
-Alternatively, if you are using VS Code, you can use the Live Server extension to open it.
-
-Type a query (e.g., "Python", "Apple", "Machine") and hit Enter!
+Developed with ❤️ by Muhammad Yahya Sohail

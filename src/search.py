@@ -5,14 +5,13 @@ This script is the main interface for the search engine.
 It takes a user's search query, cleans the text, and looks for matching
 words in the Inverted Index. To make sure the best results come first,
 it uses the TF-IDF formula to score and rank the documents based on relevance.
-While we have already captured the Term Frequency (TF) in our Inverted Index, we still need to implement the Inverse Document Frequency (IDF) logic. In the worst-case scenario, without a proper ranking system, the search engine would display the most irrelevant and useless links at the top. Therefore, we must mathematically score these results to ensure accuracy and relevance.
 """
 
 import json
 import os
 import math
-import re  # Snippet highlighter ke liye add kiya
-from Tokenization import clean_text
+import re  
+from src.Tokenization import clean_text
 
 # ==========================================
 # 📂 PATH SETUP
@@ -38,36 +37,25 @@ class PySearchEngine:
         print(f"Index loaded successfully! Total indexed documents: {self.total_docs}")
 
     def _calculate_total_docs(self):
-        # Extract total unique URLs by adding them to a set
         unique_docs = set()
         for token, docs in self.index.items():
             for doc_uri in docs.keys():
                 unique_docs.add(doc_uri)
-        return max(1, len(unique_docs))  # Max 1 to prevent Divide by Zero errors
+        return max(1, len(unique_docs))
 
     # ==========================================
     # 📏 EDIT DISTANCE (Levenshtein Distance)
     # ==========================================
     def _levenshtein_distance(self, s1, s2):
-        """
-        Calculate the Levenshtein distance between two strings.
-        This measures how many single-character edits (insertions, deletions, substitutions)
-        are needed to transform s1 into s2.
-        Time Complexity: O(m*n) where m and n are string lengths
-        Space Complexity: O(m*n) but can be optimized to O(min(m,n))
-        """
         if len(s1) < len(s2):
             return self._levenshtein_distance(s2, s1)
-        
         if len(s2) == 0:
             return len(s1)
         
-        # Use dynamic programming to calculate distances
         previous_row = range(len(s2) + 1)
         for i, c1 in enumerate(s1):
             current_row = [i + 1]
             for j, c2 in enumerate(s2):
-                # j+1 instead of j since previous_row and current_row are one character longer than s2
                 insertions = previous_row[j + 1] + 1
                 deletions = current_row[j] + 1
                 substitutions = previous_row[j] + (c1 != c2)
@@ -79,31 +67,36 @@ class PySearchEngine:
     # ==========================================
     # 🤔 DID YOU MEAN - SUGGESTION ENGINE
     # ==========================================
-    def _get_suggestions(self, token, max_distance=2, top_n=3):
-        """
-        Find similar terms in the index using edit distance.
-        Returns top N suggestions with similar spellings.
-        
-        Args:
-            token: The misspelled/unfound token
-            max_distance: Maximum edit distance to consider (default 2)
-            top_n: Number of suggestions to return (default 3)
-        
-        Returns:
-            List of suggested terms sorted by edit distance
-        """
-        suggestions = []
-        
-        for indexed_term in self.index.keys():
-            distance = self._levenshtein_distance(token, indexed_term)
-            
-            # Only consider terms within max_distance
-            if distance <= max_distance:
-                suggestions.append((indexed_term, distance))
-        
-        # Sort by distance (closer matches first) and return top N
-        suggestions.sort(key=lambda x: x[1])
-        return [term for term, _ in suggestions[:top_n]]
+    def find_closest_match(self, broken_word):
+        best_match = None
+        min_dist = float('inf')
+        for valid_word in self.index.keys():
+            dist = self._levenshtein_distance(broken_word, valid_word)
+            # Find the closest match, allowing a max of 2 typos
+            if dist < min_dist and dist <= 2: 
+                min_dist = dist
+                best_match = valid_word
+        return best_match
+
+    def get_spell_suggestion(self, raw_query):
+        words = raw_query.split() 
+        corrected_words = []
+        has_changes = False
+
+        for word in words:
+            if word.lower() not in self.index:
+                best_match = self.find_closest_match(word.lower()) 
+                if best_match:
+                    corrected_words.append(best_match)
+                    has_changes = True
+                else:
+                    corrected_words.append(word)
+            else:
+                corrected_words.append(word)
+
+        if has_changes:
+            return " ".join(corrected_words) 
+        return None
 
     # ==========================================
     # ✂️ SNIPPET GENERATOR LOGIC
@@ -113,27 +106,21 @@ class PySearchEngine:
         for token in tokens:
             idx = lower_text.find(token)
             if idx != -1:
-                # Word found! Uske aage peeche ka context uthao
                 start = max(0, idx - 50)
                 end = min(len(text), idx + 80)
                 snippet = text[start:end]
-
-                # HTML <b> tags lagao taake UI mein bold nazar aaye
                 highlighted_snippet = re.sub(
                     f"({token})", r"<b>\1</b>", snippet, flags=re.IGNORECASE
                 )
                 return "..." + highlighted_snippet.strip() + "..."
-
-        # Agar exact match preview mein na mile toh shuru ka text bhej do
         return text[:100] + "..."
 
     def search(self, query, page=1, page_size=10):
         tokens = clean_text(query)
         if not tokens:
-            return [], 0, []
+            return [], 0, None
 
         scores = {}
-        missing_tokens = []  # Track tokens not found in index
         
         for token in tokens:
             if token in self.index:
@@ -143,23 +130,14 @@ class PySearchEngine:
                     if uri not in scores:
                         scores[uri] = 0
                     scores[uri] += tf * idf
-            else:
-                # Token not found - we'll suggest corrections
-                missing_tokens.append(token)
 
-        # Generate "Did You Mean" suggestions for missing tokens
-        suggestions = []
-        for missing_token in missing_tokens:
-            token_suggestions = self._get_suggestions(missing_token)
-            suggestions.extend(token_suggestions)
-        
-        # Remove duplicates and limit to 3 unique suggestions
-        suggestions = list(dict.fromkeys(suggestions))[:3]
+        # Generate "Did You Mean" using the full raw query
+        did_you_mean_suggestion = self.get_spell_suggestion(query)
 
         ranked_results = sorted(scores.items(), key=lambda item: item[1], reverse=True)
         total_matches = len(ranked_results)
 
-        # Pagination Logic (Slice the array)
+        # Pagination Logic 
         start_idx = (page - 1) * page_size
         end_idx = start_idx + page_size
 
@@ -169,7 +147,7 @@ class PySearchEngine:
             snippet = self._generate_snippet(text_preview, tokens)
             final_results.append({"url": uri, "score": score, "snippet": snippet})
 
-        return final_results, total_matches, suggestions
+        return final_results, total_matches, did_you_mean_suggestion
 
 
 # ==========================================
@@ -186,7 +164,6 @@ if __name__ == "__main__":
         print("=" * 40)
 
         while True:
-            # Translated the user prompt to English
             user_query = input("\nEnter your search query (or type 'exit' to quit): ")
 
             if user_query.lower() == "exit":
@@ -195,18 +172,15 @@ if __name__ == "__main__":
         
             results, total_matches = engine.search(user_query, page=1, page_size=10)
 
-            # Display suggestions if no results found
             if not results:
                 print("No results found. Please try searching for something else.")
                 if suggestions:
-                    print(f"\n💡 Did you mean: {', '.join(suggestions)}")
+                    print(f"\n💡 Did you mean: {suggestions}")
             else:
                 print(f"\nShowing Top {len(results)} Results for '{user_query}' (Out of {total_matches} total matches):")
                 for i, res in enumerate(results, 1):
-                    # Ab dictionary se data print kar rahe hain
                     print(f"{i}. {res['url']} (Relevance Score: {res['score']:.4f})")
                     print(f"   Snippet: {res['snippet']}")
                 
-                # Show suggestions even if we found some results
                 if suggestions:
-                    print(f"\n💡 Did you mean: {', '.join(suggestions)}")
+                    print(f"\n💡 Did you mean: {suggestions}")

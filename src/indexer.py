@@ -12,7 +12,7 @@ is saved to disk, enabling O(1) time complexity for future search lookups.
 import json
 import os
 # Importing function from the fast Tokenization file
-from Tokenization import clean_text
+from src.Tokenization import clean_text
 
 # ==========================================
 # 📂 PATH SETUP (Static Absolute Paths)

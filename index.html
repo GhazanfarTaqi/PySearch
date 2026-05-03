@@ -16,12 +16,12 @@
         .snippet b { color: #202124; font-weight: bold; }
         .score { color: #006621; font-size: 13px; margin-top: 5px; }
         
-        /* Suggestions CSS */
-        .suggestions { margin-top: 20px; padding: 15px; background: #f0f8ff; border-left: 4px solid #007bff; border-radius: 5px; }
-        .suggestions-title { font-size: 14px; color: #555; font-weight: bold; margin-bottom: 8px; }
-        .suggestion-link { display: inline-block; margin-right: 10px; margin-bottom: 5px; padding: 6px 12px; background: #e3f2fd; color: #1976d2; border-radius: 4px; cursor: pointer; border: 1px solid #90caf9; text-decoration: none; }
-        .suggestion-link:hover { background: #bbdefb; border-color: #64b5f6; }
-        
+        /* Did you mean CSS */
+        .spell-check { color: #cc0000; font-size: 16px; margin-bottom: 15px; }
+        .spell-check span { color: #cc0000; }
+        .spell-check a { color: #1a0dab; font-weight: bold; font-style: italic; text-decoration: none; cursor: pointer; }
+        .spell-check a:hover { text-decoration: underline; }
+
         /* Pagination CSS */
         .pagination { margin-top: 30px; padding-bottom: 50px; text-align: center;}
         .page-btn { padding: 10px 20px; font-size: 16px; margin: 0 5px; background: #f8f9fa; color: #202124; border: 1px solid #dadce0; border-radius: 5px; cursor: pointer;}
@@ -42,7 +42,6 @@
         let currentPage = 1; 
         let currentQuery = "";
 
-        // BUGHUNT FIX: Yeh function pehle missing tha!
         function handleKeyPress(e) {
             if (e.key === 'Enter') {
                 startNewSearch();
@@ -51,19 +50,23 @@
 
         function startNewSearch() {
             currentPage = 1;
-            // .trim() add kiya taake faltu spaces masla na karein
             currentQuery = document.getElementById("searchBox").value.trim();
             
-            // Agar box khali hai toh kuch mat karo
             if (currentQuery === "") return; 
             
             fetchResults();
         }
 
+        // Yeh naya function hai jo suggestion click hone par chalega
+        function applySuggestion(correctedWord) {
+            document.getElementById("searchBox").value = correctedWord; // Box me naya word daalo
+            startNewSearch(); // Fauran naya search shuru kardo
+        }
+
         function changePage(newPage) {
             currentPage = newPage;
             fetchResults();
-            window.scrollTo(0, 0); // Scroll to top
+            window.scrollTo(0, 0); 
         }
 
         async function fetchResults() {
@@ -78,11 +81,27 @@
             paginationDiv.innerHTML = ""; 
 
             try {
-                // API Call with Page Number
                 const response = await fetch(`http://127.0.0.1:8000/search?q=${currentQuery}&page=${currentPage}`);
                 const data = await response.json();
 
-                resultsDiv.innerHTML = `<p style="color: #70757a; font-size: 14px;">Found ${data.total_results} results (Showing Page ${data.current_page} of ${data.total_pages})</p>`;
+                resultsDiv.innerHTML = ""; // Clear loader
+
+                // 1. Check for spelling suggestions first
+                if (data.suggestions && data.suggestions.length > 0) {
+                    // Agar backend array bhej raha hai (e.g., ["hello"]), toh pehla item uthao. 
+                    // Agar string bhej raha hai, toh directly use karo.
+                    let suggestionText = Array.isArray(data.suggestions) ? data.suggestions[0] : data.suggestions;
+                    
+                    resultsDiv.innerHTML += `
+                        <div class="spell-check">
+                            <span>Did you mean:</span> 
+                            <a onclick="applySuggestion('${suggestionText}')">${suggestionText}</a>
+                        </div>
+                    `;
+                }
+
+                // 2. Summary of results
+                resultsDiv.innerHTML += `<p style="color: #70757a; font-size: 14px;">Found ${data.total_results} results (Showing Page ${data.current_page} of ${data.total_pages})</p>`;
 
                 // Display suggestions if they exist
                 if (data.suggestions && data.suggestions.length > 0) {
@@ -99,7 +118,7 @@
                     return;
                 }
 
-                // Results Draw Karna
+                // 3. Draw Results
                 data.results.forEach(item => {
                     resultsDiv.innerHTML += `
                         <div class="result-item">
@@ -110,7 +129,7 @@
                     `;
                 });
 
-                // Pagination Buttons Draw Karna
+                // 4. Draw Pagination
                 if (data.total_pages > 1) {
                     let prevDisabled = data.current_page === 1 ? "disabled" : "";
                     let nextDisabled = data.current_page === data.total_pages ? "disabled" : "";

@@ -9,7 +9,7 @@ import math
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from search import PySearchEngine
+from src.search import PySearchEngine
 
 # ==========================================
 # 📂 PATH SETUP
@@ -51,10 +51,10 @@ def search_query(q: str, page: int = 1, limit: int = 10):
     total_pages = math.ceil(total_matches / limit) if total_matches > 0 else 0
     
     return {
-        "query": q,
-        "total_results": total_matches,
-        "current_page": page,
-        "total_pages": total_pages,
-        "suggestions": suggestions,
-        "results": results
-    }
+            "query": q,
+            "total_results": total_matches,
+            "current_page": page,
+            "total_pages": total_pages,
+            "suggestions": suggestions,  # <-- Just change this key!
+            "results": results
+        }

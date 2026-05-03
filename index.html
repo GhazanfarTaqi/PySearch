@@ -6,25 +6,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PySearch</title>
     <style>
-<<<<<<< Updated upstream
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 50px auto; text-align: center; }
-        input { width: 70%; padding: 15px; font-size: 18px; border-radius: 25px; border: 1px solid #ccc; outline: none; }
-        button { padding: 15px 25px; font-size: 18px; border-radius: 25px; border: none; background: #007bff; color: white; cursor: pointer; margin-left: 10px; }
-        #results { margin-top: 30px; text-align: left; }
-        .result-item { padding: 15px; border-bottom: 1px solid #eee; }
-        .result-item a { color: #1a0dab; text-decoration: none; font-size: 20px; font-weight: bold; }
-        .result-item a:hover { text-decoration: underline; }
-        .snippet { font-size: 15px; color: #4d5156; margin-top: 8px; line-height: 1.4; }
-        .snippet b { color: #202124; font-weight: bold; }
-        .score { color: #006621; font-size: 13px; margin-top: 5px; }
-        
-        /* Suggestions CSS */
-        .suggestions { margin-top: 20px; padding: 15px; background: #f0f8ff; border-left: 4px solid #007bff; border-radius: 5px; }
-        .suggestions-title { font-size: 14px; color: #555; font-weight: bold; margin-bottom: 8px; }
-        .suggestion-link { display: inline-block; margin-right: 10px; margin-bottom: 5px; padding: 6px 12px; background: #e3f2fd; color: #1976d2; border-radius: 4px; cursor: pointer; border: 1px solid #90caf9; text-decoration: none; }
-        .suggestion-link:hover { background: #bbdefb; border-color: #64b5f6; }
-        
-=======
         body {
             font-family: Arial, sans-serif;
             max-width: 800px;
@@ -114,7 +95,6 @@
             text-decoration: underline;
         }
 
->>>>>>> Stashed changes
         /* Pagination CSS */
         .pagination {
             margin-top: 30px;
@@ -156,7 +136,6 @@
         let currentPage = 1;
         let currentQuery = "";
 
-        // BUGHUNT FIX: Yeh function pehle missing tha!
         function handleKeyPress(e) {
             if (e.key === 'Enter') {
                 startNewSearch();
@@ -165,29 +144,23 @@
 
         function startNewSearch() {
             currentPage = 1;
-            // .trim() add kiya taake faltu spaces masla na karein
             currentQuery = document.getElementById("searchBox").value.trim();
-<<<<<<< Updated upstream
-            
-            // Agar box khali hai toh kuch mat karo
-            if (currentQuery === "") return; 
-            
-=======
 
             if (currentQuery === "") return;
 
->>>>>>> Stashed changes
             fetchResults();
+        }
+
+        // Yeh naya function hai jo suggestion click hone par chalega
+        function applySuggestion(correctedWord) {
+            document.getElementById("searchBox").value = correctedWord; // Box me naya word daalo
+            startNewSearch(); // Fauran naya search shuru kardo
         }
 
         function changePage(newPage) {
             currentPage = newPage;
             fetchResults();
-<<<<<<< Updated upstream
-            window.scrollTo(0, 0); // Scroll to top
-=======
             window.scrollTo(0, 0);
->>>>>>> Stashed changes
         }
 
         async function fetchResults() {
@@ -202,13 +175,9 @@
             paginationDiv.innerHTML = "";
 
             try {
-                // API Call with Page Number
                 const response = await fetch(`http://127.0.0.1:8000/search?q=${currentQuery}&page=${currentPage}`);
                 const data = await response.json();
 
-<<<<<<< Updated upstream
-                resultsDiv.innerHTML = `<p style="color: #70757a; font-size: 14px;">Found ${data.total_results} results (Showing Page ${data.current_page} of ${data.total_pages})</p>`;
-=======
                 resultsDiv.innerHTML = ""; // Clear loader
 
                 // 1. Check for spelling suggestions (Fixed for String response)
@@ -228,14 +197,13 @@
 
                 // 2. Summary of results
                 resultsDiv.innerHTML += `<p style="color: #70757a; font-size: 14px;">Found ${data.total_results} results (Showing Page ${data.current_page} of ${data.total_pages})</p>`;
->>>>>>> Stashed changes
 
                 if (data.results.length === 0) {
                     resultsDiv.innerHTML += "<p>No results found.</p>";
                     return;
                 }
 
-                // Results Draw Karna
+                // 3. Draw Results
                 data.results.forEach(item => {
                     resultsDiv.innerHTML += `
                 <div class="result-item">
@@ -246,7 +214,7 @@
             `;
                 });
 
-                // Pagination Buttons Draw Karna
+                // 4. Draw Pagination
                 if (data.total_pages > 1) {
                     let prevDisabled = data.current_page === 1 ? "disabled" : "";
                     let nextDisabled = data.current_page === data.total_pages ? "disabled" : "";

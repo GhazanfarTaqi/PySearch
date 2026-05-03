@@ -1,3 +1,7 @@
 data/raw/raw.jsonl
 data/raw/raw.text
+src/__pycache__
 
+__pycache__/
+*.py[cod]
+*$py.class

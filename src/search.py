@@ -12,7 +12,7 @@ import json
 import os
 import math
 import re  # Snippet highlighter ke liye add kiya
-from Tokenization import clean_text
+from src.Tokenization import clean_text
 
 # ==========================================
 # 📂 PATH SETUP

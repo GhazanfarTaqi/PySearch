@@ -9,7 +9,7 @@ import math
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from search import PySearchEngine
+from src.search import PySearchEngine
 
 # ==========================================
 # 📂 PATH SETUP
